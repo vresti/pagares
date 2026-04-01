@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generador de Pagarés · Isla del Este</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ════════════════════════════════════════════
+       VARIABLES & RESET
+    ════════════════════════════════════════════ */
+    :root {
+      --bg0       : #0b0e14;
+      --bg1       : #141820;
+      --bg2       : #1c2230;
+      --bg3       : #232b3b;
+      --border    : #2a3347;
+      --border2   : #374159;
+      --text      : #d4dbe8;
+      --text2     : #8a96aa;
+      --text3     : #56627a;
+      --green     : #22c55e;
+      --green-dim : #16a34a;
+      --green-bg  : rgba(34,197,94,.12);
+      --gold      : #e4aa22;
+      --gold-bg   : rgba(228,170,34,.12);
+      --blue      : #3b82f6;
+      --blue-dim  : #1d4ed8;
+      --red       : #ef4444;
+      --red-bg    : rgba(239,68,68,.12);
+      --amber     : #f59e0b;
+      --radius    : 10px;
+      --sidebar   : 290px;
+      --font      : 'Inter', system-ui, sans-serif;
+      --mono      : 'JetBrains Mono', monospace;
+
+      /* Pagaré colors */
+      --pg-border : #1a5c1a;
+      --pg-inner  : #388e3c;
+      --pg-bg     : #f6fdf4;
+      --pg-deco   : #2e7d32;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font);
+      background: var(--bg0);
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ════════════════════════════════════════════
+       LAYOUT
+    ════════════════════════════════════════════ */
+    .app {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ════════════════════════════════════════════
+       SIDEBAR
+    ════════════════════════════════════════════ */
+    .sidebar {
+      width: var(--sidebar);
+      flex-shrink: 0;
+      background: var(--bg1);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-scroll {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+    /* Brand header */
+    .brand {
+      padding: 18px 16px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--pg-deco), #1b5e20);
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(46,125,50,.4);
+    }
+
+    .brand-text .name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -.2px;
+    }
+
+    .brand-text .sub {
+      font-size: 10px;
+      color: var(--text3);
+      font-weight: 400;
+    }
+
+    .version-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2px 9px;
+      font-size: 10px;
+      color: var(--text3);
+      font-family: var(--mono);
+    }
+
+    .dot-live {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%,100% { opacity: 1; }
+      50%      { opacity: .3; }
+    }
+
+    /* Section headers */
+    .sec {
+      padding: 14px 16px 0;
+    }
+
+    .sec-lbl {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text3);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sec-lbl::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* Form elements */
+    .fgrp {
+      margin-bottom: 10px;
+    }
+
+    .flbl {
+      display: block;
+      font-size: 10px;
+      color: var(--text2);
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+
+    .finput {
+      width: 100%;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 7px 10px;
+      color: var(--text);
+      font-size: 11px;
+      font-family: var(--mono);
+      outline: none;
+      transition: border-color .15s, background .15s;
+    }
+
+    .finput:focus {
+      border-color: var(--green-dim);
+      background: var(--bg3);
+    }
+
+    .finput::placeholder { color: var(--text3); font-size: 10px; }
+
+    /* Buttons */
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      padding: 8px 14px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all .15s;
+      font-family: var(--font);
+    }
+
+    .btn + .btn { margin-top: 6px; }
+
+    .btn-green {
+      background: var(--green-dim);
+      color: #fff;
+    }
+    .btn-green:hover { background: var(--green); }
+
+    .btn-ghost {
+      background: var(--bg2);
+      color: var(--text2);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { border-color: var(--border2); color: var(--text); }
+
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%);
+      color: #0b0e14;
+      font-weight: 700;
+    }
+    .btn-gold:hover { filter: brightness(1.08); }
+
+    .btn:disabled {
+      opacity: .35;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    /* Status badge */
+    .status-wrap {
+      padding: 10px 16px;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 7px;
+      font-size: 11px;
+      font-weight: 500;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+    }
+
+    .s-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .st-idle  .s-dot { background: var(--text3); }
+    .st-ok    .s-dot { background: var(--green); animation: pulse 2s infinite; }
+    .st-err   .s-dot { background: var(--red); }
+    .st-load  .s-dot { background: var(--amber); animation: pulse .6s infinite; }
+
+    .st-ok  .s-txt { color: var(--green); }
+    .st-err .s-txt { color: var(--red); }
+
+    /* Stats grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      padding: 0 16px;
+    }
+
+    .stat-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 8px;
+      text-align: center;
+    }
+
+    .stat-val {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--green);
+      font-family: var(--mono);
+      letter-spacing: -1px;
+    }
+
+    .stat-lbl {
+      font-size: 9px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-top: 2px;
+    }
+
+    .stat-wide {
+      grid-column: 1 / -1;
+    }
+
+    .stat-acreedor {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gold);
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Info lines */
+    .info-lines {
+      padding: 0 16px;
+    }
+
+    .info-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+    }
+
+    .info-line:last-child { border-bottom: none; }
+    .info-lbl { color: var(--text2); }
+    .info-val { color: var(--text); font-weight: 600; font-family: var(--mono); font-size: 10px; }
+
+    /* Sidebar dividers */
+    .sdiv {
+      height: 1px;
+      background: var(--border);
+      margin: 14px 0;
+    }
+
+    /* Sidebar bottom */
+    .sidebar-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      font-size: 9px;
+      color: var(--text3);
+      line-height: 1.7;
+    }
+
+    /* ════════════════════════════════════════════
+       MAIN
+    ════════════════════════════════════════════ */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg0);
+    }
+
+    .topbar {
+      padding: 12px 20px;
+      background: var(--bg1);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .topbar-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .topbar-count {
+      display: none;
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid rgba(34,197,94,.25);
+      border-radius: 20px;
+      padding: 2px 9px;
+      font-size: 10px;
+      font-weight: 600;
+      font-family: var(--mono);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tbtn {
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--bg2);
+      color: var(--text2);
+      transition: all .15s;
+      display: none;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .tbtn:hover { border-color: var(--border2); color: var(--text); }
+
+    .tbtn-print {
+      background: var(--gold);
+      color: #0b0e14;
+      border-color: var(--gold);
+      font-weight: 700;
+    }
+
+    .tbtn-print:hover { filter: brightness(1.1); }
+
+    /* Preview area */
+    .preview {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    .preview::-webkit-scrollbar { width: 6px; }
+    .preview::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+    /* Empty state */
+    .empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 14px;
+      color: var(--text3);
+    }
+
+    .empty-icon {
+      font-size: 56px;
+      opacity: .25;
+    }
+
+    .empty-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text2);
+    }
+
+    .empty-sub {
+      font-size: 12px;
+      text-align: center;
+      max-width: 320px;
+      line-height: 1.6;
+    }
+
+    /* Sheet preview wrapper */
+    .preview-inner {
+      display: none;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .sheet-wrap {
+      background: #fff;
+      border-radius: 6px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.5);
+      overflow: hidden;
+      padding: 14px 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .sheet-label {
+      font-size: 9px;
+      color: #aaa;
+      text-align: right;
+      font-family: var(--mono);
+      margin-bottom: -2px;
+    }
+
+    /* ════════════════════════════════════════════
+       LOG BAR
+    ════════════════════════════════════════════ */
+    .logbar {
+      background: var(--bg1);
+      border-top: 1px solid var(--border);
+      padding: 8px 18px;
+      max-height: 110px;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .logbar::-webkit-scrollbar { width: 4px; }
+    .logbar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .log-line {
+      font-size: 10px;
+      font-family: var(--mono);
+      color: var(--text3);
+      line-height: 1.8;
+    }
+
+    .log-ok  { color: #22c55e; }
+    .log-err { color: #ef4444; }
+    .log-inf { color: #60a5fa; }
+
+    /* ════════════════════════════════════════════
+       PAGARÉ  (screen + print)
+    ════════════════════════════════════════════ */
+    .pagare {
+      width: 100%;
+      background: var(--pg-bg);
+      border: 5px solid var(--pg-border);
+      position: relative;
+      font-family: Georgia, 'Times New Roman', Times, serif;
+      color: #111;
+      flex-shrink: 0;
+    }
+
+    .pagare::after {
+      content: '';
+      position: absolute;
+      inset: 5px;
+      border: 1px solid var(--pg-inner);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Decorative bar */
+    .pg-deco {
+      background: var(--pg-deco);
+      height: 13px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .pg-deco::before {
+      content: '❧ ✿ ❧ ✿ ❧ ✿ ❧ ✿ ❧ ✿ ❧ ✿ ❧ ✿ ❧ ✿ ❧ ✿ ❧ ✿ ❧ ✿ ❧ ✿ ❧ ✿ ❧ ✿ ❧ ✿ ❧ ✿ ❧ ✿ ❧ ✿ ❧ ✿ ❧ ✿ ❧ ✿ ❧ ✿ ❧ ✿ ❧ ✿ ❧';
+      color: #a5d6a7;
+      font-size: 8px;
+      letter-spacing: 3px;
+      white-space: nowrap;
+    }
+
+    /* Body */
+    .pg-body {
+      padding: 7px 15px 7px;
+    }
+
+    /* ── Row 1: Header fields ── */
+    .pg-r1 {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      margin-bottom: 5px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #c5dfc5;
+    }
+
+    .pg-field {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .pg-lbl {
+      font-size: 7px;
+      font-weight: 700;
+      letter-spacing: .7px;
+      text-transform: uppercase;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #444;
+      line-height: 1.2;
+    }
+
+    .pg-val {
+      border-bottom: 1px solid #555;
+      font-size: 11px;
+      padding: 1px 3px;
+      font-family: Arial, Helvetica, sans-serif;
+      min-width: 60px;
+      color: #111;
+      background: transparent;
+    }
+
+    .pg-num-field { min-width: 110px; }
+    .pg-vto-field { min-width: 110px; }
+
+    .pg-porval {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    .pg-por-lbl {
+      font-size: 13px;
+      font-weight: 700;
+      font-family: Arial, Helvetica, sans-serif;
+      letter-spacing: .5px;
+      color: #111;
+      white-space: nowrap;
+    }
+
+    .pg-por-num {
+      font-size: 14px;
+      font-weight: 700;
+      font-family: Arial, Helvetica, sans-serif;
+      border-bottom: 2px solid #333;
+      min-width: 110px;
+      padding: 0 4px;
+      color: #111;
+    }
+
+    /* ── Row 2: Lugar y Fecha ── */
+    .pg-r2 {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      margin-bottom: 4px;
+      font-size: 7.5px;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #555;
+      flex-wrap: wrap;
+    }
+
+    .pg-r2 .v {
+      font-size: 10px;
+      color: #111;
+      border-bottom: 1px solid #aaa;
+      padding: 0 3px;
+    }
+
+    /* ── Row 3: El día ... pagaré sin protesto ── */
+    .pg-r3 {
+      display: flex;
+      align-items: baseline;
+      gap: 5px;
+      margin-bottom: 4px;
+    }
+
+    .ci {
+      font-style: italic;
+      font-size: 12px;
+    }
+
+    .pg-dia-val {
+      font-style: italic;
+      font-size: 12px;
+      border-bottom: 1px solid #555;
+      padding: 0 4px;
+      min-width: 70px;
+    }
+
+    .pg-fecha-val {
+      font-style: italic;
+      font-size: 12px;
+      border-bottom: 1px solid #555;
+      padding: 0 4px;
+      flex: 1;
+    }
+
+    .pg-art {
+      font-size: 7.5px;
+      color: #555;
+      font-family: Arial, Helvetica, sans-serif;
+      margin-left: auto;
+      white-space: nowrap;
+      align-self: flex-end;
+    }
+
+    /* ── Row 4: a Señor ── */
+    .pg-r4 {
+      display: flex;
+      align-items: baseline;
+      gap: 5px;
+      margin-bottom: 4px;
+    }
+
+    .pg-senor {
+      flex: 1;
+      border-bottom: 1px solid #555;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 0 4px;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    /* ── Row 5: de [moneda] + letras ── */
+    .pg-r5 {
+      display: flex;
+      align-items: baseline;
+      gap: 5px;
+      margin-bottom: 2px;
+    }
+
+    .pg-letras {
+      flex: 1;
+      border-bottom: 1px solid #555;
+      font-size: 11px;
+      font-style: italic;
+      font-weight: 600;
+      padding: 0 4px;
+    }
+
+    .pg-extraline {
+      border-bottom: 1px solid #d0d0d0;
+      height: 14px;
+      margin-bottom: 3px;
+    }
+
+    /* ── Row 6: por igual valor ── */
+    .pg-r6 {
+      display: flex;
+      align-items: baseline;
+      gap: 5px;
+      margin-bottom: 4px;
+      flex-wrap: wrap;
+    }
+
+    .pg-recibido {
+      min-width: 100px;
+      border-bottom: 1px solid #555;
+      font-size: 11px;
+      padding: 0 4px;
+    }
+
+    /* ── Row 7: pagadero en ── */
+    .pg-r7 {
+      display: flex;
+      align-items: baseline;
+      gap: 5px;
+      margin-bottom: 6px;
+    }
+
+    .pg-pagadero {
+      flex: 1;
+      border-bottom: 1px solid #555;
+      font-size: 11px;
+      padding: 0 4px;
+    }
+
+    /* ── Bottom: Firma ── */
+    .pg-bottom {
+      border-top: 1px solid #c5dfc5;
+      padding-top: 5px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .pg-brow {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .pg-blbl {
+      font-size: 7.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      font-family: Arial, Helvetica, sans-serif;
+      white-space: nowrap;
+      color: #333;
+    }
+
+    .pg-bline {
+      flex: 1;
+      border-bottom: 1px solid #555;
+      min-height: 11px;
+    }
+
+    /* ════════════════════════════════════════════
+       PRINT
+    ════════════════════════════════════════════ */
+    #print-area {
+      display: none;
+    }
+
+    @media print {
+      @page {
+        size: A4 landscape;
+        margin: 8mm 10mm;
+      }
+
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      html, body {
+        background: #fff !important;
+      }
+
+      .app {
+        display: none !important;
+      }
+
+      #print-area {
+        display: block !important;
+      }
+
+      /* Cada .print-sheet = 1 página con 2 pagarés */
+      .print-sheet {
+        width: 100%;
+        height: 192mm;            /* 210mm - 8mm top - 8mm bottom - 2mm buffer */
+        display: flex;
+        flex-direction: column;
+        gap: 4mm;
+        page-break-after: always;
+        break-after: page;
+      }
+
+      .print-sheet:last-child {
+        page-break-after: avoid;
+        break-after: avoid;
+      }
+
+      .pagare {
+        flex: 1;
+        max-height: 94mm;
+        overflow: hidden;
+        border: 5px solid #1a5c1a !important;
+        background: #f6fdf4 !important;
+      }
+
+      .pagare::after {
+        border-color: #388e3c !important;
+      }
+
+      .pg-deco {
+        background: #2e7d32 !important;
+        height: 12px;
+      }
+
+      /* Reduce font sizes slightly for print */
+      .ci, .pg-dia-val, .pg-fecha-val, .pg-letras, .pg-senor,
+      .pg-recibido, .pg-pagadero, .pg-extraline + div {
+        font-size: 10px !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════
+     MAIN APP UI
+════════════════════════════════════════════════════════ -->
+<div class="app" id="app">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-row">
+        <div class="brand-icon">📜</div>
+        <div class="brand-text">
+          <div class="name">Pagarés · Isla del Este</div>
+          <div class="sub">Chat WS Hub · Documentos</div>
+        </div>
+      </div>
+      <span class="version-pill"><span class="dot-live"></span>v1.0 · 2026</span>
+    </div>
+
+    <div class="sidebar-scroll">
+
+      <!-- CONFIG -->
+      <div class="sec" style="margin-top:14px">
+        <div class="sec-lbl">⚙ Configuración</div>
+        <div class="fgrp">
+          <label class="flbl">URL Apps Script Web App</label>
+          <input type="text" class="finput" id="apiUrl"
+                 placeholder="https://script.google.com/macros/s/..." />
+        </div>
+        <button class="btn btn-green" onclick="cargarDatos()">
+          ⬇&nbsp;&nbsp;Cargar pagarés
+        </button>
+        <button class="btn btn-ghost" onclick="testApi()">
+          🔌&nbsp;&nbsp;Test conexión
+        </button>
+      </div>
+
+      <!-- STATUS -->
+      <div class="status-wrap">
+        <div class="status-badge st-idle" id="status-badge">
+          <span class="s-dot"></span>
+          <span class="s-txt" id="s-txt">Sin datos</span>
+        </div>
+      </div>
+
+      <!-- STATS (oculto hasta carga) -->
+      <div id="panel-stats" style="display:none">
+        <div class="sec">
+          <div class="sec-lbl">📊 Resumen</div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-val" id="st-total">-</div>
+            <div class="stat-lbl">Pagarés</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="st-pags">-</div>
+            <div class="stat-lbl">Páginas A4</div>
+          </div>
+          <div class="stat-card stat-wide">
+            <div class="stat-acreedor" id="st-acreedor">-</div>
+            <div class="stat-lbl">Acreedor</div>
+          </div>
+        </div>
+        <div style="height:12px"></div>
+        <div class="sec">
+          <div class="sec-lbl">📋 Detalle</div>
+        </div>
+        <div class="info-lines" id="info-lines"></div>
+        <div style="height:14px"></div>
+      </div>
+
+      <!-- IMPRIMIR -->
+      <div class="sec">
+        <div class="sec-lbl">🖨 Imprimir</div>
+        <button class="btn btn-gold" id="btn-print" disabled onclick="imprimirPagares()">
+          🖨&nbsp;&nbsp;Generar PDF / Imprimir
+        </button>
+        <div style="margin-top:10px; font-size:10px; color:var(--text3); line-height:1.7; padding:0 2px">
+          Al imprimir, seleccioná:<br>
+          • Orientación: <strong style="color:var(--text2)">Horizontal</strong><br>
+          • Escala: <strong style="color:var(--text2)">100%</strong> (sin ajuste)<br>
+          • Guardar como PDF para archivo digital
+        </div>
+      </div>
+
+    </div><!-- /sidebar-scroll -->
+
+    <div class="sidebar-footer">
+      Isla del Este S.A. · Delta del Tigre, Bs.As.<br>
+      D. Ley 5965/63 · Pagaré sin protesto
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main class="main">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <span class="topbar-title">Vista Previa de Pagarés</span>
+        <span class="topbar-count" id="topbar-count">0 documentos</span>
+      </div>
+      <div class="topbar-right">
+        <button class="tbtn" id="tbtn-reload" onclick="cargarDatos()" style="display:none">
+          ↺&nbsp;Recargar
+        </button>
+        <button class="tbtn tbtn-print" id="tbtn-print" onclick="imprimirPagares()" style="display:none">
+          🖨&nbsp;Imprimir
+        </button>
+      </div>
+    </div>
+
+    <!-- Preview area -->
+    <div class="preview" id="preview">
+      <div class="empty" id="empty-state">
+        <div class="empty-icon">📄</div>
+        <div class="empty-title">Sin datos cargados</div>
+        <div class="empty-sub">
+          Ingresá la URL del Apps Script en el panel lateral y hacé clic en
+          <strong>"Cargar pagarés"</strong> para generar la vista previa.
+        </div>
+      </div>
+      <div class="preview-inner" id="preview-inner"></div>
+    </div>
+
+    <!-- Log bar -->
+    <div class="logbar" id="logbar">
+      <div class="log-line log-inf">[init] Sistema listo · ingresá la URL del Apps Script para comenzar.</div>
+    </div>
+  </main>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     PRINT AREA  (oculto en pantalla, visible al imprimir)
+════════════════════════════════════════════════════════ -->
+<div id="print-area"></div>
+
+<!-- ════════════════════════════════════════════════════════
+     SCRIPT
+════════════════════════════════════════════════════════ -->
+<script>
+// ─── State ────────────────────────────────────────────
+let _data = null;
+
+// ─── Init ────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('pg_api_url');
+  if (saved) document.getElementById('apiUrl').value = saved;
+
+  document.getElementById('apiUrl').addEventListener('blur', e => {
+    const v = e.target.value.trim();
+    if (v) localStorage.setItem('pg_api_url', v);
+  });
+
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+      if (_data) { e.preventDefault(); imprimirPagares(); }
+    }
+  });
+});
+
+// ─── API helpers ─────────────────────────────────────
+function getUrl() {
+  const url = document.getElementById('apiUrl').value.trim();
+  if (!url) {
+    log('✗ Ingresá la URL del Apps Script', 'err');
+    document.getElementById('apiUrl').focus();
+    return null;
+  }
+  return url;
+}
+
+async function fetchApi(url) {
+  const res = await fetch(url, { redirect: 'follow' });
+  const txt = await res.text();
+  try {
+    return JSON.parse(txt);
+  } catch {
+    const m = txt.match(/\{[\s\S]*\}/);
+    if (m) return JSON.parse(m[0]);
+    throw new Error('Respuesta no válida: ' + txt.slice(0, 80));
+  }
+}
+
+async function testApi() {
+  const url = getUrl(); if (!url) return;
+  setStatus('load', 'Conectando...');
+  log('Testeando conexión...', 'inf');
+  try {
+    const r = await fetchApi(url + '?action=test');
+    if (r.ok) {
+      log('✓ Conexión OK — ' + (r.ts || ''), 'ok');
+      setStatus('ok', 'Conexión OK');
+    } else {
+      throw new Error(r.error || 'Sin respuesta válida');
+    }
+  } catch (err) {
+    log('✗ ' + err.message, 'err');
+    setStatus('err', 'Error de conexión');
+  }
+}
+
+async function cargarDatos() {
+  const url = getUrl(); if (!url) return;
+  setStatus('load', 'Cargando...');
+  log('Solicitando pagarés...', 'inf');
+  document.getElementById('empty-state').style.display = 'flex';
+  document.getElementById('preview-inner').style.display = 'none';
+  try {
+    const data = await fetchApi(url + '?action=getPagares');
+    if (!data.ok) throw new Error(data.error || 'Error en los datos');
+    _data = data;
+    localStorage.setItem('pg_api_url', url);
+    log('✓ ' + data.total + ' pagarés cargados', 'ok');
+    setStatus('ok', data.total + ' pagarés cargados');
+    renderAll(data);
+    document.getElementById('btn-print').disabled = false;
+    showElem('tbtn-reload', true);
+    showElem('tbtn-print', true);
+    const tc = document.getElementById('topbar-count');
+    tc.textContent = data.total + ' documentos';
+    tc.style.display = 'inline-flex';
+  } catch (err) {
+    log('✗ ' + err.message, 'err');
+    setStatus('err', 'Error al cargar');
+  }
+}
+
+// ─── Render ──────────────────────────────────────────
+function renderAll(data) {
+  const pgs = data.pagares;
+  const sheets = chunk2(pgs);
+
+  // Stats
+  document.getElementById('st-total').textContent   = data.total;
+  document.getElementById('st-pags').textContent    = sheets.length;
+  document.getElementById('st-acreedor').textContent = pgs[0]?.acreedor || '-';
+  document.getElementById('panel-stats').style.display = 'block';
+
+  const p0 = pgs[0], pN = pgs[pgs.length-1];
+  document.getElementById('info-lines').innerHTML = [
+    ['1° vencimiento', p0.vtoFmt],
+    ['Último vto.',    pN.vtoFmt],
+    ['Monto c/u',      p0.simbolo + ' ' + p0.montoFmt],
+    ['Moneda',         p0.monedaTxt],
+    ['Lugar de pago',  p0.lugarPago || '-'],
+    ['Valor recibido', p0.valRecibido || '-'],
+  ].map(([l,v]) => `<div class="info-line"><span class="info-lbl">${l}</span><span class="info-val">${esc(v)}</span></div>`).join('');
+
+  // Screen preview
+  const pInner = document.getElementById('preview-inner');
+  pInner.innerHTML = sheets.map((pair, idx) => `
+    <div class="sheet-wrap">
+      <div class="sheet-label">Página ${idx+1} / ${sheets.length} &nbsp;·&nbsp; Pagarés ${pair[0].numero}${pair[1] ? '–'+pair[1].numero : ''} / ${p0.numFinal}</div>
+      ${pair.map(p => mkPagare(p)).join('')}
+    </div>`).join('');
+  pInner.style.display = 'block';
+  document.getElementById('empty-state').style.display = 'none';
+
+  // Print area
+  document.getElementById('print-area').innerHTML = sheets.map(pair => `
+    <div class="print-sheet">
+      ${pair.map(p => mkPagare(p)).join('')}
+    </div>`).join('');
+}
+
+function chunk2(arr) {
+  const out = [];
+  for (let i = 0; i < arr.length; i += 2)
+    out.push(arr.slice(i, i+2));
+  return out;
+}
+
+// ─── Pagaré HTML ────────────────────────────────────
+function mkPagare(p) {
+  return `
+<div class="pagare">
+  <div class="pg-deco"></div>
+  <div class="pg-body">
+
+    <!-- Fila 1: SELLADO / N° / VENCIMIENTO / POR -->
+    <div class="pg-r1">
+      <div class="pg-field">
+        <span class="pg-lbl">Sellado</span>
+        <span class="pg-val">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+      </div>
+      <div class="pg-field pg-num-field">
+        <span class="pg-lbl">N°</span>
+        <span class="pg-val"><strong>${p.numero}/${p.numFinal}</strong></span>
+      </div>
+      <div class="pg-field pg-vto-field">
+        <span class="pg-lbl">Vencimiento</span>
+        <span class="pg-val"><strong>${p.vtoFmt}</strong></span>
+      </div>
+      <div class="pg-porval">
+        <span class="pg-por-lbl">POR ${esc(p.simbolo)}</span>
+        <span class="pg-por-num">${esc(p.montoFmt)}</span>
+      </div>
+    </div>
+
+    <!-- Fila 2: Lugar y Fecha -->
+    <div class="pg-r2">
+      <span>LUGAR Y FECHA</span>
+      <span class="v">${esc(p.lugarEmision)}</span>
+      <span>,</span>
+      <span class="v">&nbsp;${p.diaEmision}&nbsp;</span>
+      <span>de</span>
+      <span class="v">&nbsp;${esc(p.mesEmisionNom)}&nbsp;</span>
+      <span>de&nbsp;20${String(p.anioEmision).slice(2)}</span>
+    </div>
+
+    <!-- Fila 3: El día ... pagaré sin protesto -->
+    <div class="pg-r3">
+      <span class="ci">El día</span>
+      <span class="pg-dia-val">${esc(p.diaNombreVto)}</span>
+      <span class="ci">${p.diaNumVto} de ${esc(p.mesNombreVto)} de ${p.anioVto}</span>
+      <span class="ci">&nbsp;pagaré sin protesto</span>
+      <span class="pg-art">(ART. 50 - D. LEY 5965/63)</span>
+    </div>
+
+    <!-- Fila 4: a Señor ... o a su orden la cantidad -->
+    <div class="pg-r4">
+      <span class="ci">a</span>
+      <span class="ci">Señor</span>
+      <span class="pg-senor">${esc(p.acreedor)}</span>
+      <span class="ci">o a su orden la cantidad</span>
+    </div>
+
+    <!-- Fila 5: de [moneda] + letras -->
+    <div class="pg-r5">
+      <span class="ci">de ${esc(p.monedaTxt)}</span>
+      <span class="pg-letras">${esc(p.montoLetras)}</span>
+    </div>
+    <div class="pg-extraline"></div>
+
+    <!-- Fila 6: por igual valor recibido -->
+    <div class="pg-r6">
+      <span class="ci">por igual valor recibido en</span>
+      <span class="pg-recibido">${esc(p.valRecibido)}</span>
+      <span class="ci">a&nbsp;</span>
+      <span class="ci">mi entera satisfacción</span>
+    </div>
+
+    <!-- Fila 7: pagadero en -->
+    <div class="pg-r7">
+      <span class="ci">pagadero en</span>
+      <span class="pg-pagadero">${esc(p.lugarPago)}</span>
+    </div>
+
+    <!-- Bottom: firma del librador -->
+    <div class="pg-bottom">
+      <div class="pg-brow">
+        <span class="pg-blbl">Nombre</span>
+        <div class="pg-bline"></div>
+      </div>
+      <div class="pg-brow">
+        <span class="pg-blbl">Calle</span>
+        <div class="pg-bline"></div>
+      </div>
+      <div class="pg-brow" style="gap:12px">
+        <span class="pg-blbl">Localidad</span>
+        <div class="pg-bline" style="flex:3"></div>
+        <span class="pg-blbl">Tel.</span>
+        <div class="pg-bline" style="flex:1.2"></div>
+      </div>
+    </div>
+
+  </div><!-- /pg-body -->
+  <div class="pg-deco"></div>
+</div>`;
+}
+
+// ─── Print ───────────────────────────────────────────
+function imprimirPagares() {
+  if (!_data) { log('✗ No hay datos para imprimir', 'err'); return; }
+  log('Abriendo diálogo de impresión...', 'inf');
+  setTimeout(() => window.print(), 150);
+}
+
+// ─── UI helpers ──────────────────────────────────────
+function setStatus(type, msg) {
+  const el  = document.getElementById('status-badge');
+  const txt = document.getElementById('s-txt');
+  el.className = 'status-badge st-' + type;
+  txt.textContent = msg;
+}
+
+function showElem(id, show) {
+  document.getElementById(id).style.display = show ? 'inline-flex' : 'none';
+}
+
+function log(msg, type = 'inf') {
+  const bar  = document.getElementById('logbar');
+  const line = document.createElement('div');
+  const t    = new Date().toLocaleTimeString('es-AR', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  line.className = 'log-line log-' + type;
+  line.textContent = '[' + t + '] ' + msg;
+  bar.appendChild(line);
+  bar.scrollTop = bar.scrollHeight;
+}
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
