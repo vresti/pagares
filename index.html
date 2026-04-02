@@ -616,6 +616,28 @@ select.finp option{background:var(--bg2)}
   </main>
 </div>
 
+<!-- Modal registro -->
+<div class="overlay" id="register-overlay">
+  <div class="modal">
+    <div class="modal-icon">👤</div>
+    <div class="modal-title">Nuevo usuario</div>
+    <div class="modal-msg" style="text-align:left;margin-bottom:14px">
+      Tu correo no está registrado. Ingresá tu nombre completo para crear tu cuenta con <strong style="color:var(--green)">5 créditos gratuitos</strong>.
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:5px">Nombre y Apellido</label>
+      <input id="reg-nombre" class="linp" type="text" placeholder="Juan García"
+             oninput="capitalizarInput(this)"
+             onkeydown="if(event.key==='Enter')confirmarRegistro()"/>
+    </div>
+    <div class="modal-btns">
+      <button class="mbtn mbtn-cancel" onclick="cerrarRegistro()">Cancelar</button>
+      <button class="mbtn mbtn-confirm" id="btn-reg-confirm" onclick="confirmarRegistro()">Crear cuenta y continuar</button>
+    </div>
+    <div id="reg-err" class="lerr" style="margin-top:10px"></div>
+  </div>
+</div>
+
 <!-- Modal -->
 <div class="overlay" id="modal-overlay">
   <div class="modal">
@@ -641,7 +663,7 @@ select.finp option{background:var(--bg2)}
 // ════════════════════════════════════════════════════════
 //  CONFIGURACIÓN  —  reemplazá con tu URL de Apps Script
 // ════════════════════════════════════════════════════════
-const API_URL = 'https://script.google.com/macros/s/AKfycby0hOsCsX_JOBNHzoNpa0XAJWye-RxukKcfeuG3f8HQrhOQ9pd-wVeCniA5eO7AQQW9Cw/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxzsCVoEhUh_Sk2-9lMk2-bVb2EvW2tRd1K9i3dMYSq2aCKa1d4sw94V03ZmmMNsvq1wA/exec';
 
 // ════════════════════════════════════════════════════════
 //  ESTADO GLOBAL
@@ -721,6 +743,7 @@ async function sendCode(){
   hideErr('lerr1'); setBtnLoading('btn-send',true);
   const r = await api({action:'sendCode',email});
   setBtnLoading('btn-send',false);
+  if (!r.ok && r.needsRegister){ abrirRegistro(email); return; }
   if (!r.ok){ showErr('lerr1',r.error); return; }
   document.getElementById('ls2-sub').textContent = 'Código enviado a ' + email + '. Ingresalo a continuación.';
   document.getElementById('ls1').style.display='none';
@@ -1047,7 +1070,9 @@ async function saveLote(){
       const r = await api(params);
       hideLoading();
       if (!r.ok){ toast('Error: '+r.error,'err'); return; }
-      toast('✓ Operación #'+r.orden+' guardada','ok');
+      const cupoRestante = (SESSION.user.cupo - SESSION.user.cupoUsado - 1);
+      const cupoMsg = SESSION.user.esAdmin ? '' : ` — te quedan ${cupoRestante} crédito${cupoRestante!==1?'s':''}`;
+      toast('✓ Operación #'+r.orden+' guardada'+cupoMsg,'ok');
       ALL_LOTES=[]; loadStats();
       setTimeout(()=>goTab('browser'),600);
     }
@@ -1301,11 +1326,20 @@ function mkPagareHTML(p){
       <span class="pg-pagadero">${esc(p.lugarPago)}</span>
     </div>
     <div class="pg-bottom">
-      <div class="pg-brow"><span class="pg-blbl">Nombre</span><div class="pg-bline" style="padding-left:4px;font-size:9px;font-family:Arial;font-weight:600">${esc(p.deudorNombre)}</div></div>
-      <div class="pg-brow"><span class="pg-blbl">Calle</span><div class="pg-bline" style="padding-left:4px;font-size:9px;font-family:Arial">${esc(p.deudorDom)}</div></div>
-      <div class="pg-brow" style="gap:8px">
-        <span class="pg-blbl">Localidad</span><div class="pg-bline" style="flex:3;padding-left:4px;font-size:8px;font-family:Arial">${esc(p.deudorLoc)}</div>
-        <span class="pg-blbl">Tel.</span><div class="pg-bline" style="flex:1.2"></div>
+      <div style="display:flex;gap:0;align-items:stretch">
+        <div style="flex:1.4;display:flex;flex-direction:column;gap:2px;padding-right:8px">
+          <div class="pg-brow"><span class="pg-blbl">Nombre</span><div class="pg-bline" style="padding-left:3px;font-size:9px;font-family:Arial;font-weight:600">${esc(p.deudorNombre)}</div></div>
+          <div class="pg-brow"><span class="pg-blbl">Calle</span><div class="pg-bline" style="padding-left:3px;font-size:9px;font-family:Arial">${esc(p.deudorDom)}</div></div>
+          <div class="pg-brow" style="gap:5px">
+            <span class="pg-blbl">Loc.</span><div class="pg-bline" style="flex:2.2;padding-left:3px;font-size:8px;font-family:Arial">${esc(p.deudorLoc)}</div>
+            <span class="pg-blbl">Tel.</span><div class="pg-bline" style="flex:1"></div>
+          </div>
+        </div>
+        <div style="flex:1;border-left:1px solid #c5dfc5;padding-left:8px;display:flex;flex-direction:column;justify-content:flex-start;gap:2px">
+          <div style="font-size:7px;font-family:Arial;color:#555;font-weight:700;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap">Firma y aclaración</div>
+          <div style="flex:1;border-bottom:1px solid #555;min-height:16px"></div>
+          <div style="border-bottom:1px solid #555;min-height:9px"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -1541,6 +1575,53 @@ function n2l(n){
   if(n<1000000){const m=Math.floor(n/1000),r=n%1000;return r?n2l(m)+' mil '+n2l(r):n2l(m)+' mil';}
   if(n<1000000000){const m=Math.floor(n/1000000),r=n%1000000;const ms=m===1?'un millón':n2l(m)+' millones';return r?ms+' '+n2l(r):ms;}
   return n.toLocaleString('es-AR');
+}
+
+// ════════════════════════════════════════════════════════
+//  AUTO-REGISTRO
+// ════════════════════════════════════════════════════════
+let _emailPendienteRegistro = '';
+
+function abrirRegistro(email) {
+  _emailPendienteRegistro = email;
+  document.getElementById('reg-nombre').value = '';
+  hideErr('reg-err');
+  document.getElementById('register-overlay').classList.add('show');
+  setTimeout(()=>document.getElementById('reg-nombre').focus(), 150);
+}
+
+function cerrarRegistro() {
+  document.getElementById('register-overlay').classList.remove('show');
+  _emailPendienteRegistro = '';
+}
+
+async function confirmarRegistro() {
+  const nombre = document.getElementById('reg-nombre').value.trim();
+  if (!nombre || nombre.length < 2) {
+    showErr('reg-err', 'Ingresá tu nombre completo'); return;
+  }
+  hideErr('reg-err');
+  const btn = document.getElementById('btn-reg-confirm');
+  btn.disabled = true; btn.textContent = 'Creando cuenta...';
+
+  const r = await api({ action:'registerUser', email:_emailPendienteRegistro, nombre });
+  btn.disabled = false; btn.textContent = 'Crear cuenta y continuar';
+
+  if (!r.ok) { showErr('reg-err', r.error); return; }
+
+  cerrarRegistro();
+  // Ahora enviar el código normalmente
+  setBtnLoading('btn-send', true);
+  const r2 = await api({ action:'sendCode', email:_emailPendienteRegistro });
+  setBtnLoading('btn-send', false);
+  if (!r2.ok) { showErr('lerr1', r2.error); return; }
+
+  document.getElementById('ls2-sub').textContent =
+    '¡Cuenta creada! Código enviado a ' + _emailPendienteRegistro + '.';
+  document.getElementById('ls1').style.display = 'none';
+  document.getElementById('ls2').style.display = 'block';
+  setTimeout(()=>document.getElementById('otp0').focus(), 100);
+  toast('✓ Cuenta creada con 5 créditos. ¡Bienvenido!', 'ok');
 }
 
 // ════════════════════════════════════════════════════════
