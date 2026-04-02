@@ -1176,8 +1176,7 @@ async function openLote(orden){
 async function ocultarOp(orden, evt) {
   evt.stopPropagation();
   showModal('✕', '¿Ocultar esta operación?',
-    'La operación #' + orden + ' se ocultará de tu lista.
-El registro queda guardado en el sistema.',
+    'La operación #' + orden + ' se ocultará de tu lista.\nEl registro queda guardado en el sistema.',
     async () => {
       closeModal();
       const r = await api({ action:'hideOp', token:SESSION.token, orden });
