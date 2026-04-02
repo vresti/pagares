@@ -1153,7 +1153,11 @@ function renderTable(lotes){
       <td class="mono">${l.cantCuotas}</td>
       <td class="mono">${simb} ${fmtN(l.montoTotal,dec)}</td>
       <td>${badge}</td>
-      <td><button class="tact" onclick="openLote('${l.orden}')">Ver / Imprimir</button></td>
+      <td style="white-space:nowrap;display:flex;gap:5px">
+        <button class="tact" onclick="openLote('${l.orden}')">Ver / Imprimir</button>
+        ${l.estado!=='IMPRESO'?'':''}
+        <button class="tact" style="color:var(--text3);border-color:transparent" title="Ocultar de la lista" onclick="ocultarOp('${l.orden}',event)">✕</button>
+      </td>
     </tr>`;
   }).join('');
 }
@@ -1169,6 +1173,21 @@ async function openLote(orden){
   renderVista(r.lote, serie);
 }
 
+async function ocultarOp(orden, evt) {
+  evt.stopPropagation();
+  showModal('✕', '¿Ocultar esta operación?',
+    'La operación #' + orden + ' se ocultará de tu lista.
+El registro queda guardado en el sistema.',
+    async () => {
+      closeModal();
+      const r = await api({ action:'hideOp', token:SESSION.token, orden });
+      if (!r.ok) { toast('Error: '+r.error,'err'); return; }
+      ALL_LOTES = ALL_LOTES.filter(l => l.orden !== orden);
+      renderTable(ALL_LOTES);
+      toast('Operación #'+orden+' ocultada','inf');
+    });
+}
+
 function recalcularDesdeLote(lote){
   const esDolar = lote.moneda==='USD';
   const dec     = esDolar?2:0;
@@ -1176,7 +1195,7 @@ function recalcularDesdeLote(lote){
   let serie     = [];
 
   if (lote.modo==='CUOTAS_IGUALES'){
-    serie = calcCuotasIguales(parseFloat(lote.montoTotal)||0, parseInt(lote.cantCuotas)||1, dec);
+    serie = calcCuotasIguales(parseFloat(lote.montoTotal)||0, parseInt(lote.cantCuotas)||1, 0); // sin decimales
   } else if (lote.modo==='CUOTA_FIJA'){
     serie = calcCuotaFija(parseFloat(lote.montoTotal)||0, parseFloat(lote.cuotaFija)||1, dec);
   } else {
@@ -1251,8 +1270,9 @@ function renderVista(lote, serie){
 }
 
 function mkPagareObj(s, i, total, lote){
-  const esDolar = lote.moneda==='USD';
-  const dec     = esDolar?2:0;
+  const esDolar    = lote.moneda==='USD';
+  const modoActual = lote.modo || lote.modoCode || '';
+  const dec        = modoActual==='CUOTAS_IGUALES' ? 0 : (esDolar ? 2 : 0);
   const v       = s.vencimiento;
   const emis    = parseISODate(lote.fechaEmision)||new Date();
   return {
@@ -1289,7 +1309,7 @@ function mkPagareHTML(p){
       <div class="pg-field" style="min-width:100px"><span class="pg-lbl">Vencimiento</span><span class="pg-val"><strong>${p.vtoFmt}</strong></span></div>
       <div class="pg-porval">
         <span class="pg-por-lbl">POR ${esc(p.simbolo)}</span>
-        <span class="pg-por-num">${esc(p.montoFmt)}</span>
+        <span class="pg-por-num">-- ${esc(p.montoFmt)} --</span>
       </div>
     </div>
     <div class="pg-r2">
